@@ -99,15 +99,23 @@ def check_split(train_df: pd.DataFrame, val_df: pd.DataFrame, test_df: pd.DataFr
     EXPECTED_TOTAL = 17509
     assert len(union_all) == EXPECTED_TOTAL, f"Hợp ba tập là {len(union_all)} ảnh, kỳ vọng {EXPECTED_TOTAL}!"
 
-    # 4. Kiểm tra sự tồn tại của file trong images_dir
+    # 4. Kiểm tra sự tồn tại của thư mục và file trong images_dir
     img_dir_path = Path(images_dir)
+    assert img_dir_path.exists(), (
+        f"LỖI ĐƯỜNG DẪN: Thư mục chứa ảnh '{images_dir}' không tồn tại!\n"
+        f"Gợi ý trên Colab: Hãy kiểm tra bằng `!ls {images_dir}` hoặc đặt đường dẫn tuyệt đối, ví dụ: '/content/data/images'."
+    )
+
     missing_files = []
-    if img_dir_path.exists():
-        for fn in union_all:
-            if not (img_dir_path / fn).exists():
-                missing_files.append(fn)
-        assert len(missing_files) == 0, (
-            f"Thiếu {len(missing_files)} file ảnh trong thư mục {images_dir}! Ví dụ: {missing_files[:5]}"
+    for fn in list(union_all)[:100]:  # Kiểm tra nhanh 100 file đầu tiên
+        if not (img_dir_path / fn).exists():
+            missing_files.append(fn)
+
+    if missing_files:
+        raise FileNotFoundError(
+            f"Thư mục '{images_dir}' không chứa các file ảnh của dataset!\n"
+            f"Thiếu các file ví dụ: {missing_files[:5]}.\n"
+            f"Gợi ý: Nếu ảnh bị giải nén thẳng vào 'data/', hãy chạy: '!mkdir -p data/images && mv data/*.jpg data/images/'."
         )
 
     # Thống kê phân bố lớp

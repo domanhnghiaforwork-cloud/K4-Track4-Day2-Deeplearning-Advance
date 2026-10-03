@@ -387,7 +387,10 @@ def run(cfg: Config) -> Dict[str, Any]:
     # 6. Thiết lập Optimizer, Scheduler, Scaler, EMA
     optimizer = build_optimizer(model, cfg)
     scheduler = build_scheduler(optimizer, cfg, steps_per_epoch=len(train_loader))
-    scaler = torch.cuda.amp.GradScaler(enabled=cfg.amp and (device.type == "cuda"))
+    try:
+        scaler = torch.amp.GradScaler("cuda", enabled=cfg.amp and (device.type == "cuda"))
+    except Exception:
+        scaler = torch.cuda.amp.GradScaler(enabled=cfg.amp and (device.type == "cuda"))
     ema = EMA(model, decay=cfg.ema_decay) if cfg.ema_decay is not None else None
 
     # 7. Vòng lặp huấn luyện qua từng epoch
